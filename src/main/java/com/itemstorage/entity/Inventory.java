@@ -15,16 +15,10 @@ public class Inventory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // ID пациента в МИС (персональные данные НЕ храним)
-    @Column(name = "mis_patient_id", nullable = false, length = 50)
-    private String misPatientId;
-
-    // Кешируем ФИО только на время активной сессии (можно очищать)
-    @Column(name = "patient_fio_display", length = 200)
-    private String patientFioDisplay;
-
-    @Column(name = "patient_birth_date", length = 10)
-    private String patientBirthDate;
+    // Связь с таблицей patients (теперь данные пациента хранятся у нас)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "patient_id", nullable = false)
+    private Patient patient;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -48,7 +42,7 @@ public class Inventory {
     @Column(name = "issued_at")
     private LocalDateTime issuedAt;
 
-    @Column(name = "issued_by")
+    @Column(name = "issued_by", length = 150)
     private String issuedBy;
 
     @OneToMany(mappedBy = "inventory", cascade = CascadeType.ALL, orphanRemoval = true)

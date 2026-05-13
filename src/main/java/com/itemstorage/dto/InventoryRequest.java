@@ -5,7 +5,6 @@ import java.util.List;
 
 @Data
 public class InventoryRequest {
-    private String misPatientId;
-    private String patientBirthDate;
+    private String medicalCardNumber;  // Номер истории болезни (вместо misPatientId)
     private List<ItemRequest> items;
 }

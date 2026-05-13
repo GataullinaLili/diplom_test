@@ -8,10 +8,19 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface InventoryRepository extends JpaRepository<Inventory, Long> {
+    
     List<Inventory> findByStatus(InventoryStatus status);
     
-    @Query("SELECT i FROM Inventory i WHERE i.misPatientId LIKE %?1%")
-    List<Inventory> findByPatientIdContaining(String patientId);
+    // Поиск описей по ID пациента
+    List<Inventory> findByPatientId(Long patientId);
+    
+    // Поиск описей по ФИО пациента
+    @Query("SELECT i FROM Inventory i WHERE LOWER(i.patient.fullName) LIKE LOWER(CONCAT('%', :fio, '%'))")
+    List<Inventory> findByPatientFullNameContaining(String fio);
+    
+    // Поиск описей по номеру медкарты
+    @Query("SELECT i FROM Inventory i WHERE i.patient.medicalCardNumber LIKE CONCAT('%', :cardNumber, '%')")
+    List<Inventory> findByPatientCardNumberContaining(String cardNumber);
     
     List<Inventory> findByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
     

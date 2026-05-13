@@ -5,6 +5,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Словарь вещей — АРМ.Вещи</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .dictionary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .category-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .category-card h4 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .category-card ul {
+            list-style: none;
+            padding: 0;
+        }
+        .category-card li {
+            padding: 10px 0;
+            border-bottom: 1px solid #f5f5f5;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .category-card li:hover {
+            background: #f8f9fa;
+        }
+        .item-actions {
+            display: flex;
+            gap: 5px;
+        }
+        .add-custom-item {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        .add-custom-item input {
+            flex: 1;
+        }
+    </style>
 </head>
 <body>
     <div th:replace="~{fragments/sidebar :: sidebar}"></div>
@@ -16,33 +65,493 @@
             <h1 class="page-title">Словарь вещей</h1>
             
             <div class="card">
-                <p style="margin-bottom: 15px;">
-                    Справочник часто используемых наименований вещей для быстрого заполнения описи
+                <p style="margin-bottom: 15px; color: #666;">
+                    📝 Справочник часто используемых наименований вещей для быстрого заполнения описи.<br>
+                    Нажмите на название, чтобы скопировать его при создании описи.
                 </p>
                 
                 <div class="search-box">
-                    <input type="text" placeholder="Поиск по названию...">
+                    <input type="text" id="dict-search" placeholder="Поиск по названию вещи..." 
+                           onkeyup="filterItems()">
                     <button class="btn btn-primary">🔍</button>
                 </div>
             </div>
             
-            <!-- Категории -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
-                <div class="card">
-                    <h4 style="margin-bottom: 15px;">👕 Одежда</h4>
-                    <ul style="list-style: none; padding: 0;">
-                        <li style="padding: 8px 0; border-bottom: 1px solid #eee; cursor: pointer;" 
-                            onclick="selectItem('Куртка зимняя')">Куртка зимняя</li>
-                        <li style="padding: 8px 0; border-bottom: 1px solid #eee; cursor: pointer;" 
-                            onclick="selectItem('Пальто')">Пальто</li>
-                        <li style="padding: 8px 0; border-bottom: 1px solid #eee; cursor: pointer;" 
-                            onclick="selectItem('Шапка')">Шапка</li>
-                        <li style="padding: 8px 0; cursor: pointer;" 
-                            onclick="selectItem('Шарф')">Шарф</li>
+            <div class="dictionary-grid">
+                <!-- Одежда -->
+                <div class="category-card">
+                    <h4>👕 Одежда</h4>
+                    <ul class="category-items">
+                        <li onclick="copyItemName('Куртка зимняя')">
+                            Куртка зимняя
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Куртка зимняя')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Пальто')">
+                            Пальто
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Пальто')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Плащ')">
+                            Плащ
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Плащ')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Пуховик')">
+                            Пуховик
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Пуховик')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Ветровка')">
+                            Ветровка
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Ветровка')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Пиджак')">
+                            Пиджак
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Пиджак')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Свитер')">
+                            Свитер
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Свитер')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Рубашка')">
+                            Рубашка
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Рубашка')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Брюки')">
+                            Брюки
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Брюки')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Джинсы')">
+                            Джинсы
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Джинсы')">📋</button>
+                            </span>
+                        </li>
                     </ul>
                 </div>
                 
-                <div class="card">
-                    <h4 style="margin-bottom: 15px;">👟 Обувь</h4>
-                    <ul style="list-style: none; padding: 0;">
-                        <li style="padding: 8px 0;
+                <!-- Обувь -->
+                <div class="category-card">
+                    <h4>👟 Обувь</h4>
+                    <ul class="category-items">
+                        <li onclick="copyItemName('Сапоги зимние')">
+                            Сапоги зимние
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Сапоги зимние')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Сапоги осенние')">
+                            Сапоги осенние
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Сапоги осенние')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Ботинки')">
+                            Ботинки
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Ботинки')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Кроссовки')">
+                            Кроссовки
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Кроссовки')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Туфли')">
+                            Туфли
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Туфли')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Тапочки')">
+                            Тапочки
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Тапочки')">📋</button>
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Головные уборы и аксессуары -->
+                <div class="category-card">
+                    <h4>🧢 Головные уборы и аксессуары</h4>
+                    <ul class="category-items">
+                        <li onclick="copyItemName('Шапка')">
+                            Шапка
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Шапка')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Шарф')">
+                            Шарф
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Шарф')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Перчатки')">
+                            Перчатки
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Перчатки')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Варежки')">
+                            Варежки
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Варежки')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Ремень')">
+                            Ремень
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Ремень')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Очки')">
+                            Очки
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Очки')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Зонт')">
+                            Зонт
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Зонт')">📋</button>
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Электроника -->
+                <div class="category-card">
+                    <h4>📱 Электроника</h4>
+                    <ul class="category-items">
+                        <li onclick="copyItemName('Телефон мобильный')">
+                            Телефон мобильный
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Телефон мобильный')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Планшет')">
+                            Планшет
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Планшет')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Ноутбук')">
+                            Ноутбук
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Ноутбук')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Зарядное устройство')">
+                            Зарядное устройство
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Зарядное устройство')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Наушники')">
+                            Наушники
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Наушники')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Часы наручные')">
+                            Часы наручные
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Часы наручные')">📋</button>
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Документы и ценности -->
+                <div class="category-card">
+                    <h4>📄 Документы и ценности</h4>
+                    <ul class="category-items">
+                        <li onclick="copyItemName('Паспорт')">
+                            Паспорт
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Паспорт')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Полис ОМС')">
+                            Полис ОМС
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Полис ОМС')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('СНИЛС')">
+                            СНИЛС
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('СНИЛС')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Кошелёк')">
+                            Кошелёк
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Кошелёк')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Банковская карта')">
+                            Банковская карта
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Банковская карта')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Ключи')">
+                            Ключи
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Ключи')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Деньги наличные')">
+                            Деньги наличные
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Деньги наличные')">📋</button>
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Сумки и багаж -->
+                <div class="category-card">
+                    <h4>🎒 Сумки и багаж</h4>
+                    <ul class="category-items">
+                        <li onclick="copyItemName('Сумка дорожная')">
+                            Сумка дорожная
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Сумка дорожная')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Чемодан')">
+                            Чемодан
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Чемодан')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Рюкзак')">
+                            Рюкзак
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Рюкзак')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Пакет')">
+                            Пакет
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Пакет')">📋</button>
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Средства гигиены -->
+                <div class="category-card">
+                    <h4>🧴 Средства гигиены</h4>
+                    <ul class="category-items">
+                        <li onclick="copyItemName('Зубная щётка')">
+                            Зубная щётка
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Зубная щётка')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Зубная паста')">
+                            Зубная паста
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Зубная паста')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Мыло')">
+                            Мыло
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Мыло')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Шампунь')">
+                            Шампунь
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Шампунь')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Расчёска')">
+                            Расчёска
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Расчёска')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Полотенце')">
+                            Полотенце
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Полотенце')">📋</button>
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Прочее -->
+                <div class="category-card">
+                    <h4>📦 Прочее</h4>
+                    <ul class="category-items">
+                        <li onclick="copyItemName('Книга')">
+                            Книга
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Книга')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Одеяло')">
+                            Одеяло
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Одеяло')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Подушка')">
+                            Подушка
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Подушка')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Постельное бельё')">
+                            Постельное бельё
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Постельное бельё')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Посуда')">
+                            Посуда
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Посуда')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Лекарства личные')">
+                            Лекарства личные
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Лекарства личные')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Продукты питания')">
+                            Продукты питания
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Продукты питания')">📋</button>
+                            </span>
+                        </li>
+                        <li onclick="copyItemName('Вода')">
+                            Вода
+                            <span class="item-actions">
+                                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyItemName('Вода')">📋</button>
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Добавление своей вещи -->
+            <div class="card" style="margin-top: 20px;">
+                <div class="card-header">
+                    <h3 class="card-title">➕ Добавить свою вещь в словарь</h3>
+                </div>
+                <div class="add-custom-item">
+                    <input type="text" id="custom-item-name" class="form-control" 
+                           placeholder="Название вещи">
+                    <button onclick="addCustomItem()" class="btn btn-success">Добавить</button>
+                </div>
+                <div id="custom-items-list" style="margin-top: 15px;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script th:src="@{/js/app.js}"></script>
+    <script>
+        // Копирование названия в буфер обмена
+        function copyItemName(name) {
+            navigator.clipboard.writeText(name).then(() => {
+                // Показать уведомление
+                showToast('✅ Скопировано: ' + name);
+            }).catch(() => {
+                // Fallback
+                const input = document.createElement('input');
+                input.value = name;
+                document.body.appendChild(input);
+                input.select();
+                document.execCommand('copy');
+                document.body.removeChild(input);
+                showToast('✅ Скопировано: ' + name);
+            });
+        }
+        
+        // Фильтрация по поиску
+        function filterItems() {
+            const query = document.getElementById('dict-search').value.toLowerCase();
+            const items = document.querySelectorAll('.category-items li');
+            
+            items.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                if (text.includes(query)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+        
+        // Toast-уведомление
+        function showToast(message) {
+            let toast = document.getElementById('toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'toast';
+                toast.style.cssText = `
+                    position: fixed;
+                    bottom: 30px;
+                    right: 30px;
+                    background: #333;
+                    color: white;
+                    padding: 12px 20px;
+                    border-radius: 8px;
+                    z-index: 9999;
+                    transition: opacity 0.3s;
+                    font-size: 14px;
+                `;
+                document.body.appendChild(toast);
+            }
+            toast.textContent = message;
+            toast.style.opacity = '1';
+            setTimeout(() => { toast.style.opacity = '0'; }, 2000);
+        }
+        
+        // Добавление своей вещи
+        function addCustomItem() {
+            const input = document.getElementById('custom-item-name');
+            const name = input.value.trim();
+            if (!name) return;
+            
+            const list = document.getElementById('custom-items-list');
+            const div = document.createElement('div');
+            div.style.cssText = 'display: flex; justify-content: space-between; align-items: center; ' +
+                               'padding: 10px; background: #f8f9fa; border-radius: 6px; margin-bottom: 5px;';
+            div.innerHTML = `
+                <span>📦 ${name}</span>
+                <div style="display: flex; gap: 5px;">
+                    <button class="btn btn-outline btn-sm" onclick="copyItemName('${name}')">📋</button>
+                    <button class="btn btn-danger btn-sm" onclick="this.parentElement.parentElement.remove()">🗑</button>
+                </div>`;
+            list.appendChild(div);
+            input.value = '';
+        }
+    </script>
+</body>
+</html>

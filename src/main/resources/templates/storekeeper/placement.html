@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Размещение вещей — АРМ.Вещи</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    
+    <div class="main-content">
+        <div th:replace="~{fragments/topbar :: topbar}"></div>
+        
+        <div class="content">
+            <h1 class="page-title">Размещение вещей на хранение</h1>
+            
+            <!-- Поиск описи -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Найти опись для размещения</h3>
+                </div>
+                <div class="search-box">
+                    <input type="text" id="inventory-search" 
+                           placeholder="Введите номер описи или ФИО пациента...">
+                    <button onclick="searchInventoryForPlacement()" class="btn btn-primary">🔍 Найти</button>
+                </div>
+                <div style="margin-top: 10px; text-align: center;">
+                    <span style="color: #888;">или</span>
+                    <button onclick="startQrScanner('inventory-search')" class="btn btn-outline" 
+                            style="margin-left: 10px;">
+                        📷 Сканировать QR-код описи
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Результаты поиска -->
+            <div id="inventory-results" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Найденные описи</h3>
+                    </div>
+                    <div id="inventory-list"></div>
+                </div>
+            </div>
+            
+            <!-- Список описей, ожидающих размещения -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Описи, ожидающие размещения</h3>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>№ описи</th>
+                                <th>Пациент</th>
+                                <th>№ ИБ</th>
+                                <th>Дата создания</th>
+                                <th>Кол-во вещей</th>
+                                <th>Действие</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="inv : ${pendingInventories}">
+                                <td><strong>#<span th:text="${inv.id}">1001</span></strong></td>
+                                <td th:text="${inv.patient.fullName}">Иванов И.И.</td>
+                                <td th:text="${inv.patient.medicalCardNumber}">ИБ-10001</td>
+                                <td th:text="${#temporals.format(inv.createdAt, 'dd.MM.yyyy HH:mm')}">01.01.2024</td>
+                                <td th:text="${#lists.size(inv.items)}">3</td>
+                                <td>
+                                    <button th:onclick="'openPlacementModal(' + ${inv.id} + ')'" 
+                                            class="btn btn-primary btn-sm">📦 Разместить</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно размещения -->
+    <div id="placement-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Размещение описи №<span id="modal-inv-id"></span></h3>
+                <button class="modal-close" onclick="closeModal('placement-modal')">✕</button>
+            </div>
+            
+            <div id="placement-patient-info" style="margin-bottom: 20px;"></div>
+            
+            <form id="placement-form" th:action="@{/storekeeper/place}" method="post">
+                <input type="hidden" id="place-inventory-id" name="inventoryId">
+                
+                <div class="form-group">
+                    <label>Склад *</label>
+                    <select id="storage-select" name="storageId" class="form-control" required 
+                            onchange="onStorageChange()">
+                        <option value="">Выберите склад...</option>
+                        <option th:each="storage : ${storages}" 
+                                th:value="${storage.id}"
+                                th:text="${storage.name} + ' (' + ${storage.storageType.displayName} + ')'">
+                        </option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="cell-group" style="display:none;">
+                    <label>Ячейка *</label>
+                    <select id="cell-select" name="cellId" class="form-control">
+                        <option value="">Выберите ячейку...</option>
+                    </select>
+                    <div style="margin-top: 10px; color: #888; font-size: 13px;">
+                        или 
+                        <button type="button" class="btn btn-outline btn-sm" 
+                                onclick="scanQrForCell()">
+                            📷 Сканировать QR-код ячейки
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="no-cell-note" style="display:none; background: #e3f2fd; padding: 15px; border-radius: 8px;">
+                    ℹ Для склада приёмного отделения ячейка не требуется
+                </div>
+                
+                <div style="margin-top: 20px; display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-success">✅ Подтвердить размещение</button>
+                    <button type="button" class="btn btn-outline" onclick="closeModal('placement-modal')">Отмена</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script th:src="@{/js/app.js}"></script>
+    <script>
+        function openPlacementModal(inventoryId) {
+            fetch('/api/inventory/' + inventoryId)
+                .then(res => res.json())
+                .then(inv => {
+                    document.getElementById('modal-inv-id').textContent = inventoryId;
+                    document.getElementById('place-inventory-id').value = inventoryId;
+                    document.getElementById('placement-patient-info').innerHTML = `
+                        <div style="background: #e3f2fd; padding: 15px; border-radius: 8px;">
+                            <strong>Пациент:</strong> ${inv.patient.fullName}<br>
+                            <strong>№ истории:</strong> ${inv.patient.medicalCardNumber}<br>
+                            <strong>Вещей:</strong> ${inv.items.length}
+                        </div>`;
+                    openModal('placement-modal');
+                });
+        }
+        
+        function onStorageChange() {
+            const storageId = document.getElementById('storage-select').value;
+            const cellGroup = document.getElementById('cell-group');
+            const noCellNote = document.getElementById('no-cell-note');
+            
+            if (!storageId) {
+                cellGroup.style.display = 'none';
+                noCellNote.style.display = 'none';
+                return;
+            }
+            
+            // Проверяем тип склада
+            const selectedOption = document.getElementById('storage-select').selectedOptions[0];
+            const isLongTerm = selectedOption.text.includes('долговременного');
+            
+            if (isLongTerm) {
+                cellGroup.style.display = 'block';
+                noCellNote.style.display = 'none';
+                loadFreeCells(storageId);
+            } else {
+                cellGroup.style.display = 'none';
+                noCellNote.style.display = 'block';
+            }
+        }
+        
+        function loadFreeCells(storageId) {
+            fetch('/api/storage/' + storageId + '/free-cells')
+                .then(res => res.json())
+                .then(cells => {
+                    const select = document.getElementById('cell-select');
+                    select.innerHTML = '<option value="">Выберите ячейку...</option>';
+                    cells.forEach(cell => {
+                        select.innerHTML += `<option value="${cell.id}">${cell.name}</option>`;
+                    });
+                });
+        }
+        
+        function scanQrForCell() {
+            // Активирует камеру, результат вставит в скрытое поле
+            // и вызовет выбор нужной ячейки в select
+            startQrScanner('cell-qr-input');
+        }
+        
+        function searchInventoryForPlacement() {
+            const query = document.getElementById('inventory-search').value;
+            if (!query) return;
+            
+            fetch('/api/inventory/search?query=' + encodeURIComponent(query) + '&status=CREATED')
+                .then(res => res.json())
+                .then(inventories => {
+                    const container = document.getElementById('inventory-results');
+                    const list = document.getElementById('inventory-list');
+                    
+                    if (inventories.length === 0) {
+                        list.innerHTML = '<p style="text-align:center; color:#888; padding:20px;">Нет описей, ожидающих размещения</p>';
+                    } else {
+                        let html = '';
+                        inventories.forEach(inv => {
+                            html += `
+                                <div style="display:flex; justify-content:space-between; align-items:center; 
+                                     padding:15px; border-bottom:1px solid #eee;">
+                                    <div>
+                                        <strong>#${inv.id}</strong> — ${inv.patient.fullName} 
+                                        <span style="color:#888;">(${inv.patient.medicalCardNumber})</span>
+                                        <br><small>Создана: ${new Date(inv.createdAt).toLocaleString('ru')}</small>
+                                    </div>
+                                    <button onclick="openPlacementModal(${inv.id})" class="btn btn-primary btn-sm">
+                                        📦 Разместить
+                                    </button>
+                                </div>`;
+                        });
+                        list.innerHTML = html;
+                    }
+                    container.style.display = 'block';
+                });
+        }
+    </script>
+</body>
+</html>

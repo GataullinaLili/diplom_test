@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Инструкция администратора — АРМ.Вещи</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .instruction-section {
+            margin-bottom: 30px;
+        }
+        .instruction-section h3 {
+            color: #e94560;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .step {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #e94560;
+        }
+        .step-number {
+            background: #e94560;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        .step-content {
+            flex: 1;
+        }
+        .note {
+            background: #fff3e0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border-left: 4px solid #f39c12;
+        }
+        .important {
+            background: #fce4ec;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border-left: 4px solid #e74c3c;
+        }
+        code {
+            background: #f0f0f0;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    
+    <div class="main-content">
+        <div th:replace="~{fragments/topbar :: topbar}"></div>
+        
+        <div class="content">
+            <h1 class="page-title">📖 Инструкция администратора</h1>
+            
+            <div class="note" style="margin-bottom: 30px;">
+                <strong>⚠ Данный раздел доступен только пользователям с ролью «Администратор».</strong>
+            </div>
+            
+            <!-- Содержание -->
+            <div class="card">
+                <h3>Содержание</h3>
+                <ol style="line-height: 2;">
+                    <li><a href="#admin-section1" style="color: #e94560;">Управление пользователями</a></li>
+                    <li><a href="#admin-section2" style="color: #e94560;">Загрузка пациентов из Excel</a></li>
+                    <li><a href="#admin-section3" style="color: #e94560;">Управление складами</a></li>
+                    <li><a href="#admin-section4" style="color: #e94560;">Управление ячейками</a></li>
+                    <li><a href="#admin-section5" style="color: #e94560;">Генерация QR-кодов для ячеек</a></li>
+                    <li><a href="#admin-section6" style="color: #e94560;">Просмотр полной истории операций</a></li>
+                </ol>
+            </div>
+            
+            <!-- Раздел 1: Пользователи -->
+            <div class="instruction-section" id="admin-section1">
+                <h3>1. Управление пользователями</h3>
+                
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <strong>Перейдите в раздел «Пользователи»</strong>
+                        <p>В левом меню выберите <strong>«👥 Пользователи»</strong>.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <strong>Создание пользователя</strong>
+                        <p>Нажмите кнопку <strong>«+ Добавить»</strong>.</p>
+                        <p>Заполните обязательные поля:</p>
+                        <ul>
+                            <li><strong>Логин</strong> — уникальный идентификатор (латиница, до 50 символов)</li>
+                            <li><strong>Пароль</strong> — не менее 6 символов</li>
+                            <li><strong>Полное имя</strong> — ФИО сотрудника</li>
+                            <li><strong>Профиль</strong> — выберите одну из ролей:
+                                <ul>
+                                    <li><strong>Администратор</strong> — полный доступ, управление пользователями и справочниками</li>
+                                    <li><strong>Сотрудник склада</strong> — создание, размещение, перемещение, выдача описей</li>
+                                    <li><strong>Приёмщик</strong> — только создание и выдача описей</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <strong>Редактирование / блокировка</strong>
+                        <p>Нажмите на пользователя в таблице для редактирования.</p>
+                        <p>Кнопка <strong>🔒/🔓</strong> блокирует/разблокирует учётную запись.</p>
+                        <div class="important">
+                            <strong>⚠ Важно:</strong> Заблокированный пользователь не сможет войти в систему.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Раздел 2: Excel -->
+            <div class="instruction-section" id="admin-section2">
+                <h3>2. Загрузка пациентов из Excel</h3>
+                
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <strong>Перейдите в раздел «Пациенты (Excel)»</strong>
+                        <p>В левом меню выберите <strong>«👥 Пациенты (Excel)»</strong>.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <strong>Подготовьте Excel-файл</strong>
+                        <p>Файл должен быть в формате <strong>.xlsx</strong> со следующими колонками:</p>
+                        <table style="margin-top: 10px;">
+                            <thead>
+                                <tr><th>Номер истории</th><th>ФИО</th><th>Дата рождения</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>ИБ-10001</td><td>Иванов Иван Иванович</td><td>20.03.1980</td></tr>
+                                <tr><td>ИБ-10002</td><td>Петров Петр Петрович</td><td>15.07.1975</td></tr>
+                            </tbody>
+                        </table>
+                        <p style="margin-top: 10px;">Первая строка считается заголовком и пропускается.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <strong>Загрузите файл</strong>
+                        <p>Нажмите <strong>«Выберите файл»</strong>, выберите Excel и нажмите <strong>«📥 Загрузить»</strong>.</p>
+                        <p>Система покажет результат: сколько загружено, сколько пропущено.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <strong>Экспорт (образец формата)</strong>
+                        <p>Нажмите <strong>«📤 Скачать Excel»</strong>, чтобы получить текущий список всех пациентов.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Раздел 3: Склады -->
+            <div class="instruction-section" id="admin-section3">
+                <h3>3. Управление складами</h3>
+                
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <strong>Перейдите в раздел «Склады»</strong>
+                        <p>В левом меню выберите <strong>«🏠 Склады»</strong>.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <strong>Создание склада</strong>
+                        <p>Нажмите <strong>«+ Добавить склад»</strong>.</p>
+                        <p>Укажите:</p>
+                        <ul>
+                            <li><strong>Наименование</strong> — название склада</li>
+                            <li><strong>Тип</strong>:
+                                <ul>
+                                    <li><strong>Склад приёмного отделения</strong> — не может содержать ячейки</li>
+                                    <li><strong>Склад долговременного хранения</strong> — может содержать ячейки</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Раздел 4: Ячейки -->
+            <div class="instruction-section" id="admin-section4">
+                <h3>4. Управление ячейками</h3>
+                
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <strong>Перейдите в раздел «Ячейки»</strong>
+                        <p>В левом меню выберите <strong>«📦 Ячейки»</strong>.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <strong>Создание ячейки</strong>
+                        <p>Нажмите <strong>«+ Добавить ячейку»</strong>.</p>
+                        <ul>
+                            <li><strong>Наименование</strong> — например: <code>А-01</code>, <code>Б-03</code></li>
+                            <li><strong>Склад</strong> — только склады долговременного хранения</li>
+                        </ul>
+                        <div class="note">
+                            <strong>⚠ Ячейки можно создавать только на складах долговременного хранения.</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Раздел 5: QR-коды -->
+            <div class="instruction-section" id="admin-section5">
+                <h3>5. Генерация QR-кодов для ячеек</h3>
+                
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <strong>В разделе «Ячейки» нажмите «🖨 QR»</strong>
+                        <p>Рядом с нужной ячейкой нажмите кнопку <strong>«🖨 QR»</strong>.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <strong>Распечатайте QR-код</strong>
+                        <p>Откроется окно с QR-кодом. Распечатайте его и наклейте на ячейку.</p>
+                        <p>При приёмке вещей сотрудник сможет отсканировать QR-код ячейки для быстрого выбора.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Раздел 6: История -->
+            <div class="instruction-section" id="admin-section6">
+                <h3>6. Просмотр полной истории операций</h3>
+                
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <strong>Перейдите в раздел «История операций»</strong>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <strong>Используйте расширенные фильтры</strong>
+                        <p>Администратор видит <strong>все операции всех пользователей</strong>.</p>
+                        <p>Можно фильтровать по пациенту, сотруднику, дате.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <strong>Экспорт в Excel</strong>
+                        <p>Нажмите <strong>«📥 Экспорт»</strong> для выгрузки результатов в Excel.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px; padding: 20px; color: #888;">
+                <p>По техническим вопросам обращайтесь к разработчикам системы</p>
+            </div>
+        </div>
+    </div>
+    
+    <script th:src="@{/js/app.js}"></script>
+</body>
+</html>

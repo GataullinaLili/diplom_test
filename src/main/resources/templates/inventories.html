@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Описи хранения — АРМ.Вещи</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    
+    <div class="main-content">
+        <div th:replace="~{fragments/topbar :: topbar}"></div>
+        
+        <div class="content">
+            <div class="card-header" style="background: white; padding: 20px; border-radius: 8px 8px 0 0;">
+                <h1 class="page-title" style="margin: 0;">Описи хранения</h1>
+                <div class="search-box" style="margin: 15px 0 0 0;">
+                    <input type="text" placeholder="Поиск по номеру описи или ФИО...">
+                    <button class="btn btn-primary">🔍</button>
+                </div>
+            </div>
+            
+            <div class="card" style="border-radius: 0 0 8px 8px;">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>№ описи</th>
+                                <th>Пациент</th>
+                                <th>Дата создания</th>
+                                <th>Склад</th>
+                                <th>Ячейка</th>
+                                <th>Статус</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="inv : ${inventories}">
+                                <td><strong>#<span th:text="${inv.id}">1001</span></strong></td>
+                                <td th:text="${inv.patientFioDisplay}">Иванов И.И.</td>
+                                <td th:text="${#temporals.format(inv.createdAt, 'dd.MM.yyyy HH:mm')}">01.01.2024 10:00</td>
+                                <td th:text="${inv.storage?.name ?: '—'}">Склад №1</td>
+                                <td th:text="${inv.cell?.name ?: '—'}">А-01</td>
+                                <td>
+                                    <span th:class="'status status-' + ${inv.status.name().toLowerCase()}" 
+                                          th:text="${inv.status.displayName}">Размещена</span>
+                                </td>
+                                <td>
+                                    <div style="display: flex; gap: 5px;">
+                                        <!-- Просмотр -->
+                                        <button th:onclick="'viewInventory(' + ${inv.id} + ')'" 
+                                                class="btn btn-outline btn-sm" title="Просмотр">
+                                            👁
+                                        </button>
+                                        
+                                        <!-- Разместить -->
+                                        <button sec:authorize="hasAnyRole('STOREKEEPER', 'ADMIN')"
+                                                th:if="${inv.status.name() == 'CREATED'}"
+                                                th:onclick="'showPlaceModal(' + ${inv.id} + ')'" 
+                                                class="btn btn-primary btn-sm" title="Разместить">
+                                            📦
+                                        </button>
+                                        
+                                        <!-- Переместить -->
+                                        <button sec:authorize="hasAnyRole('STOREKEEPER', 'ADMIN')"
+                                                th:if="${inv.status.name() == 'PLACED'}"
+                                                th:onclick="'showMoveModal(' + ${inv.id} + ')'" 
+                                                class="btn btn-warning btn-sm" title="Переместить">
+                                            ↔
+                                        </button>
+                                        
+                                        <!-- Выдать -->
+                                        <button sec:authorize="hasAnyRole('STOREKEEPER', 'RECEPTIONIST', 'ADMIN')"
+                                                th:if="${inv.status.name() != 'ISSUED'}"
+                                                th:onclick="'confirmIssue(' + ${inv.id} + ')'" 
+                                                class="btn btn-success btn-sm" title="Выдать">
+                                            ✅
+                                        </button>
+                                        
+                                        <!-- Скачать -->
+                                        <a th:href="@{'/api/inventory/' + ${inv.id} + '/download'}" 
+                                           class="btn btn-outline btn-sm" title="Скачать">
+                                            📥
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Пагинация -->
+                <div style="display: flex; justify-content: center; gap: 5px; margin-top: 20px;">
+                    <button class="btn btn-outline btn-sm">←</button>
+                    <button class="btn btn-primary btn-sm">1</button>
+                    <button class="btn btn-outline btn-sm">2</button>
+                    <button class="btn btn-outline btn-sm">3</button>
+                    <button class="btn btn-outline btn-sm">→</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно просмотра описи -->
+    <div id="view-inventory-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Опись №<span id="view-inv-id"></span></h3>
+                <button class="modal-close" onclick="closeModal('view-inventory-modal')">✕</button>
+            </div>
+            <div id="view-inventory-content"></div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно размещения -->
+    <div id="place-inventory-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Размещение на хранение</h3>
+                <button class="modal-close" onclick="closeModal('place-inventory-modal')">✕</button>
+            </div>
+            <form th:action="@{/api/inventory/place}" method="post">
+                <input type="hidden" id="place-inv-id" name="inventoryId">
+                <div class="form-group">
+                    <label>Склад</label>
+                    <select name="storageId" class="form-control" id="storage-select" 
+                            onchange="loadFreeCells()">
+                        <option value="">Выберите склад</option>
+                        <option th:each="storage : ${storages}" 
+                                th:value="${storage.id}" 
+                                th:text="${storage.name} + ' (' + ${storage.storageType.displayName} + ')'">
+                        </option>
+                    </select>
+                </div>
+                <div class="form-group" id="cell-group" style="display: none;">
+                    <label>Ячейка</label>
+                    <select name="cellId" class="form-control" id="cell-select">
+                        <option value="">Выберите ячейку</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Разместить</button>
+            </form>
+        </div>
+    </div>
+    
+    <script th:src="@{/js/app.js}"></script>
+    <script>
+        function viewInventory(id) {
+            fetch('/api/inventory/' + id)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('view-inv-id').textContent = id;
+                    document.getElementById('view-inventory-content').innerHTML = data.html;
+                    openModal('view-inventory-modal');
+                });
+        }
+        
+        function showPlaceModal(id) {
+            document.getElementById('place-inv-id').value = id;
+            openModal('place-inventory-modal');
+        }
+        
+        function loadFreeCells() {
+            const storageId = document.getElementById('storage-select').value;
+            const cellGroup = document.getElementById('cell-group');
+            
+            if (storageId) {
+                cellGroup.style.display = 'block';
+                fetch('/api/storage/' + storageId + '/free-cells')
+                    .then(res => res.json())
+                    .then(cells => {
+                        const select = document.getElementById('cell-select');
+                        select.innerHTML = '<option value="">Выберите ячейку</option>';
+                        cells.forEach(cell => {
+                            select.innerHTML += `<option value="${cell.id}">${cell.name}</option>`;
+                        });
+                    });
+            } else {
+                cellGroup.style.display = 'none';
+            }
+        }
+        
+        function confirmIssue(id) {
+            if (confirm('Выдать вещи по описи №' + id + '?')) {
+                fetch('/api/inventory/' + id + '/issue', { method: 'POST' })
+                    .then(() => location.reload());
+            }
+        }
+    </script>
+</body>
+</html>

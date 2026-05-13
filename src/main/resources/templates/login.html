@@ -2,26 +2,118 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>АРМ.Вещи — Вход в систему</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
     <style>
-        body { font-family: Arial; display: flex; justify-content: center; 
-               align-items: center; height: 100vh; background: #f0f2f5; }
-        .login-form { background: white; padding: 40px; border-radius: 8px; 
-                      box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 350px; }
-        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; 
-                border-radius: 4px; }
-        button { width: 100%; padding: 10px; background: #0052cc; color: white; 
-                 border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            margin: 0;
+        }
+        .login-container {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .login-header h1 {
+            color: #1a1a2e;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        .login-header p {
+            color: #888;
+            font-size: 14px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #555;
+        }
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+            box-sizing: border-box;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: #e94560;
+            box-shadow: 0 0 0 3px rgba(233,69,96,0.1);
+        }
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: #e94560;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn-login:hover {
+            background: #c23152;
+        }
+        .error-message {
+            color: #e74c3c;
+            text-align: center;
+            margin-top: 10px;
+        }
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 25px;
+                width: 95%;
+            }
+            .login-header h1 {
+                font-size: 22px;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="login-form">
-        <h2 style="text-align: center;">АРМ.Вещи</h2>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>АРМ.Вещи</h1>
+            <p>Система учёта личных вещей посетителей</p>
+        </div>
         <form th:action="@{/login}" method="post">
-            <input type="text" name="username" placeholder="Логин" required>
-            <input type="password" name="password" placeholder="Пароль" required>
-            <button type="submit">Войти</button>
+            <div class="form-group">
+                <label for="username">Логин</label>
+                <input type="text" id="username" name="username" 
+                       class="form-control" placeholder="Введите логин" required autofocus>
+            </div>
+            <div class="form-group">
+                <label for="password">Пароль</label>
+                <input type="password" id="password" name="password" 
+                       class="form-control" placeholder="Введите пароль" required>
+            </div>
+            <button type="submit" class="btn-login">Войти</button>
         </form>
+        <div th:if="${param.error}" class="error-message">
+            Неверный логин или пароль
+        </div>
+        <div th:if="${param.logout}" style="color: #27ae60; text-align: center; margin-top: 10px;">
+            Вы успешно вышли из системы
+        </div>
     </div>
 </body>
 </html>

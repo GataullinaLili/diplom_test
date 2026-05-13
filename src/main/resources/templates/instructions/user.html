@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Инструкция пользователя — АРМ.Вещи</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .instruction-section {
+            margin-bottom: 30px;
+        }
+        .instruction-section h3 {
+            color: #0052cc;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .step {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #0052cc;
+        }
+        .step-number {
+            background: #0052cc;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        .step-content {
+            flex: 1;
+        }
+        .step-content img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+        }
+        .note {
+            background: #fff3e0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border-left: 4px solid #f39c12;
+        }
+        .note strong {
+            color: #e65100;
+        }
+    </style>
+</head>
+<body>
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    
+    <div class="main-content">
+        <div th:replace="~{fragments/topbar :: topbar}"></div>
+        
+        <div class="content">
+            <h1 class="page-title">📖 Инструкция пользователя</h1>
+            
+            <!-- Содержание -->
+            <div class="card">
+                <h3>Содержание</h3>
+                <ol style="line-height: 2;">
+                    <li><a href="#section1" style="color: #0052cc;">Вход в систему</a></li>
+                    <li><a href="#section2" style="color: #0052cc;">Поиск пациента и создание описи</a></li>
+                    <li><a href="#section3" style="color: #0052cc;">Размещение вещей на хранение</a></li>
+                    <li><a href="#section4" style="color: #0052cc;">Выдача вещей</a></li>
+                    <li><a href="#section5" style="color: #0052cc;">Просмотр истории операций</a></li>
+                    <li><a href="#section6" style="color: #0052cc;">Выход из системы</a></li>
+                </ol>
+            </div>
+            
+            <!-- Раздел 1: Вход в систему -->
+            <div class="instruction-section" id="section1">
+                <h3>1. Вход в систему</h3>
+                
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <strong>Откройте браузер</strong>
+                        <p>Запустите любой современный браузер (Google Chrome, Mozilla Firefox, Яндекс.Браузер, Microsoft Edge).</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <strong>Перейдите по адресу системы</strong>
+                        <p>В адресной строке браузера введите:</p>
+                        <code style="background: #f0f0f0; padding: 5px 10px; border-radius: 4px;">
+                            https://itemstorage-front-ppak.mXX.dzm/
+                        </code>
+                        <p style="margin-top: 10px;">где <strong>XX</strong> — код вашей медицинской организации.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <strong>Авторизуйтесь в системе</strong>
+                        <p>В открывшейся форме введите:</p>
+                        <ul>
+                            <li><strong>Логин</strong> — ваш индивидуальный логин (например, <code>IVANOVAA</code>)</li>
+                            <li><strong>Пароль</strong> — ваш пароль</li>
+                        </ul>
+                        <p>Нажмите кнопку <strong>«Войти»</strong>.</p>
+                        <img src="/images/screenshots/login.png" alt="Форма входа" 
+                             onerror="this.parentElement.removeChild(this)" 
+                             style="max-width: 400px; border: 1px solid #ddd; border-radius: 8px; margin-top: 10px;">
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <strong>Главная страница</strong>
+                        <p>После успешной авторизации откроется главная страница с разделами:</p>
+                        <ul>
+                            <li><strong>Поиск</strong> — поиск пациентов</li>
+                            <li><strong>Описи хранения</strong> — список всех описей</li>
+                            <li><strong>История операций</strong> — журнал действий</li>
+                            <li><strong>Словарь вещей</strong> — справочник наименований</li>
+                            <li><strong>Инструкция пользователя</strong> — текущий документ</li>
+                        </ul>
+                        <p>В правом верхнем углу отображается ваше ФИО и кнопка <strong>«Выход»</strong>.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Раздел 2: Поиск и создание описи -->
+            <div class="instruction-section" id="section2">
+                <h3>2. Поиск пациента и создание описи</h3>
+                
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <strong>Перейдите в раздел «Поиск»</strong>
+                        <p>В левом меню выберите пункт <strong>«Поиск»</strong>.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <strong>Найдите пациента</strong>
+                        <p>В поисковой строке введите один из критериев:</p>
+                        <ul>
+                            <li><strong>ФИО полностью или частично</strong> — например: <code>Иванов</code> или <code>Иванов И.И.</code></li>
+                            <li><strong>Номер истории болезни</strong> — например: <code>ИБ-10001</code></li>
+                            <li><strong>ФИО и дата рождения</strong> — например: <code>Иванов И.И. 20.03.1980</code></li>
+                        </ul>
+                        <p>Нажмите кнопку <strong>«🔍 Найти»</strong>.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <strong>Выберите пациента</strong>
+                        <p>В результатах поиска нажмите кнопку <strong>«Добавить опись хранения»</strong> рядом с нужным пациентом.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <strong>Заполните опись вещей</strong>
+                        <p>В открывшемся окне:</p>
+                        <ol>
+                            <li>В поле <strong>«Название вещи»</strong> введите наименование (или выберите из словаря)</li>
+                            <li>В поле <strong>«Количество»</strong> выберите число</li>
+                            <li>В поле <strong>«Описание»</strong> укажите особые приметы: цвет, размер, состояние</li>
+                        </ol>
+                        <p>Для добавления ещё одной вещи нажмите <strong>«+ Добавить вещь»</strong>.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">5</div>
+                    <div class="step-content">
+                        <strong>Сохраните опись</strong>
+                        <p>После заполнения всех вещей нажмите <strong>«Сохранить опись»</strong>.</p>
+                        <div class="note">
+                            <strong>⚠ Важно:</strong> После сохранения редактирование описи будет недоступно.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">6</div>
+                    <div class="step-content">
+                        <strong>Распечатайте бланк описи</strong>
+                        <p>Нажмите кнопку <strong>«📥 Скачать»</strong>, чтобы получить печатную форму.</p>
+                        <p>Проверьте поля:</p>
+                        <ul>
+                            <li><strong>ФИО Отдающего</strong> — пациент</li>
+                            <li><strong>ФИО Принимающего</strong> — сотрудник</li>
+                        </ul>
+                        <p>Распечатанный бланк подписывается обеими сторонами.</p

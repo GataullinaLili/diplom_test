@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <div th:fragment="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h2>АРМ.Вещи</h2>
+        </div>
+        <nav>
+            <a href="/main" class="active">
+                <span class="icon">🏠</span> Главная
+            </a>
+            <a href="/search">
+                <span class="icon">🔍</span> Поиск
+            </a>
+            <a href="/inventories">
+                <span class="icon">📋</span> Описи хранения
+            </a>
+            <a href="/audit/history">
+                <span class="icon">📜</span> История операций
+            </a>
+            
+            <!-- Только для администратора -->
+            <div sec:authorize="hasRole('ADMIN')">
+                <a href="/admin/users">
+                    <span class="icon">👥</span> Пользователи
+                </a>
+                <a href="/admin/storages">
+                    <span class="icon">🏠</span> Склады
+                </a>
+                <a href="/admin/cells">
+                    <span class="icon">📦</span> Ячейки
+                </a>
+            </div>
+            
+            <a href="/dictionary">
+                <span class="icon">📝</span> Словарь вещей
+            </a>
+            <a href="/instructions/user">
+                <span class="icon">📖</span> Инструкция пользователя
+            </a>
+            
+            <div sec:authorize="hasRole('ADMIN')">
+                <a href="/instructions/admin">
+                    <span class="icon">📖</span> Инструкция администратора
+                </a>
+            </div>
+        </nav>
+    </div>
+    
+    <!-- Оверлей для мобильных -->
+    <div class="sidebar-overlay" style="display: none; position: fixed; top: 0; left: 0; 
+         width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999;"></div>
+</body>
+</html>

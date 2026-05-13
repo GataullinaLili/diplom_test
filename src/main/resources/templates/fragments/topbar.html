@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <div th:fragment="topbar" class="topbar">
+        <div class="topbar-left">
+            <button class="hamburger" onclick="document.querySelector('.sidebar').classList.toggle('active'); 
+                    document.querySelector('.sidebar-overlay').classList.toggle('active');">
+                ☰
+            </button>
+            <h3>АРМ.Вещи</h3>
+        </div>
+        <div class="topbar-right">
+            <div class="user-info">
+                <div class="user-avatar" sec:authentication="name" 
+                     th:attrappend="text=${#strings.substring(#authentication.name, 0, 1)}"></div>
+                <span sec:authentication="name" style="color: #333; font-weight: 500;"></span>
+            </div>
+            <form th:action="@{/exit}" method="post" style="margin: 0;">
+                <button type="submit" class="logout-btn">Выход</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

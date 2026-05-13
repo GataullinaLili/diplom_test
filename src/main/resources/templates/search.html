@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поиск пациента — АРМ.Вещи</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    
+    <div class="main-content">
+        <div th:replace="~{fragments/topbar :: topbar}"></div>
+        
+        <div class="content">
+            <h1 class="page-title">Поиск пациента</h1>
+            
+            <!-- Поисковая строка -->
+            <div class="card">
+                <div class="search-box">
+                    <input type="text" id="patient-search" placeholder="Введите ФИО и дату рождения (пример: Иванов И.И. 20.03.1981)">
+                    <button onclick="searchPatient()" class="btn btn-primary">🔍 Найти</button>
+                </div>
+                
+                <!-- QR-сканер -->
+                <div style="display: flex; gap: 15px; align-items: center; margin-top: 10px;">
+                    <span style="color: #888;">или</span>
+                    <button onclick="startQrScanner('patient-search')" class="btn btn-outline">
+                        📷 Сканировать QR-код браслета
+                    </button>
+                </div>
+                
+                <div id="qr-scanner-area" style="display: none; margin-top: 20px; padding: 20px; 
+                     border: 2px dashed #ddd; border-radius: 8px; text-align: center;">
+                    <video id="qr-video" width="100%" max-height="300" style="max-height: 300px;"></video>
+                    <button onclick="stopQrScanner()" class="btn btn-danger btn-sm" style="margin-top: 10px;">
+                        Отменить сканирование
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Результаты поиска -->
+            <div id="search-results" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Данные пациента</h3>
+                    </div>
+                    <div id="patient-data" style="margin-bottom: 20px;"></div>
+                    <button onclick="showCreateInventoryModal()" class="btn btn-primary">
+                        Добавить опись хранения
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно создания описи -->
+    <div id="create-inventory-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Создание описи хранения</h3>
+                <button class="modal-close" onclick="closeModal('create-inventory-modal')">✕</button>
+            </div>
+            <form id="inventory-form" th:action="@{/api/inventory/create}" method="post">
+                <input type="hidden" id="mis-patient-id" name="misPatientId">
+                
+                <div id="items-container">
+                    <div class="form-group">
+                        <label>Название вещи</label>
+                        <input type="text" name="items[0].name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Количество</label>
+                        <select name="items[0].quantity" class="form-control">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Описание</label>
+                        <textarea name="items[0].description" class="form-control" rows="2" 
+                                  placeholder="Цвет, размер, особые приметы"></textarea>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button type="button" onclick="addItem()" class="btn btn-outline">+ Добавить вещь</button>
+                    <button type="submit" class="btn btn-success">Сохранить опись</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script th:src="@{/js/app.js}"></script>
+    <script>
+        let itemIndex = 1;
+        
+        function searchPatient() {
+            const query = document.getElementById('patient-search').value;
+            if (!query) return;
+            
+            // Имитация поиска (в реальности AJAX к контроллеру)
+            fetch('/search/api?query=' + encodeURIComponent(query))
+                .then(res => res.json())
+                .then(patient => {
+                    document.getElementById('search-results').style.display = 'block';
+                    document.getElementById('patient-data').innerHTML = 
+                        `<p><strong>ФИО:</strong> ${patient.fullName}</p>
+                         <p><strong>Дата рождения:</strong> ${patient.birthDate}</p>
+                         <p><strong>№ истории болезни:</strong> ${patient.medicalCardNumber}</p>`;
+                    document.getElementById('mis-patient-id').value = patient.misId;
+                });
+        }
+        
+        function showCreateInventoryModal() {
+            openModal('create-inventory-modal');
+        }
+        
+        function addItem() {
+            const container = document.getElementById('items-container');
+            const html = `
+                <hr style="margin: 20px 0;">
+                <h5 style="margin-bottom: 10px;">Вещь #${itemIndex + 1}</h5>
+                <div class="form-group">
+                    <label>Название вещи</label>
+                    <input type="text" name="items[${itemIndex}].name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Количество</label>
+                    <select name="items[${itemIndex}].quantity" class="form-control">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Описание</label>
+                    <textarea name="items[${itemIndex}].description" class="form-control" rows="2"></textarea>
+                </div>`;
+            container.insertAdjacentHTML('beforeend', html);
+            itemIndex++;
+        }
+    </script>
+</body>
+</html>

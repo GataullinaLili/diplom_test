@@ -42,7 +42,13 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
-        
+        <!-- Apache POI для чтения Excel -->
+<dependency>
+    <groupId>org.apache.poi</groupId>
+    <artifactId>poi-ooxml</artifactId>
+    <version>5.2.5</version>
+</dependency>
+             
         <!-- PostgreSQL -->
         <dependency>
             <groupId>org.postgresql</groupId>

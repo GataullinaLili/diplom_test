@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Словарь вещей — АРМ.Вещи</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    
+    <div class="main-content">
+        <div th:replace="~{fragments/topbar :: topbar}"></div>
+        
+        <div class="content">
+            <h1 class="page-title">Словарь вещей</h1>
+            
+            <div class="card">
+                <p style="margin-bottom: 15px;">
+                    Справочник часто используемых наименований вещей для быстрого заполнения описи
+                </p>
+                
+                <div class="search-box">
+                    <input type="text" placeholder="Поиск по названию...">
+                    <button class="btn btn-primary">🔍</button>
+                </div>
+            </div>
+            
+            <!-- Категории -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                <div class="card">
+                    <h4 style="margin-bottom: 15px;">👕 Одежда</h4>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="padding: 8px 0; border-bottom: 1px solid #eee; cursor: pointer;" 
+                            onclick="selectItem('Куртка зимняя')">Куртка зимняя</li>
+                        <li style="padding: 8px 0; border-bottom: 1px solid #eee; cursor: pointer;" 
+                            onclick="selectItem('Пальто')">Пальто</li>
+                        <li style="padding: 8px 0; border-bottom: 1px solid #eee; cursor: pointer;" 
+                            onclick="selectItem('Шапка')">Шапка</li>
+                        <li style="padding: 8px 0; cursor: pointer;" 
+                            onclick="selectItem('Шарф')">Шарф</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <h4 style="margin-bottom: 15px;">👟 Обувь</h4>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="padding: 8px 0;

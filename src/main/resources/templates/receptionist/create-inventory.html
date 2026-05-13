@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Создание описи — АРМ.Вещи</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .item-row {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .item-row h5 {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    
+    <div class="main-content">
+        <div th:replace="~{fragments/topbar :: topbar}"></div>
+        
+        <div class="content">
+            <h1 class="page-title">Создание описи вещей</h1>
+            
+            <!-- Поиск пациента -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Найти пациента</h3>
+                </div>
+                <div class="search-box">
+                    <input type="text" id="patient-search" 
+                           placeholder="ФИО, номер истории или ФИО + дата рождения...">
+                    <button onclick="searchPatient()" class="btn btn-primary">🔍 Найти</button>
+                </div>
+                <div id="patient-results" style="margin-top: 20px;"></div>
+            </div>
+            
+            <!-- Форма описи -->
+            <div id="inventory-form-section" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Новая опись</h3>
+                    </div>
+                    
+                    <div id="selected-patient-card" style="margin-bottom: 20px;"></div>
+                    
+                    <form th:action="@{/receptionist/create}" method="post">
+                        <input type="hidden" id="medical-card-number" name="medicalCardNumber">
+                        
+                        <div id="items-container">
+                            <div class="item-row">
+                                <h5>Вещь #1</h5>
+                                <div class="form-group">
+                                    <label>Название *</label>
+                                    <input type="text" name="items[0].name" class="form-control" required>
+                                </div>
+                                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 15px;">
+                                    <div class="form-group">
+                                        <label>Количество</label>
+                                        <select name="items[0].quantity" class="form-control">
+                                            <option value="1">1</option>
+                                            <option value="2">2</option>
+                                            <option value="3">3</option>
+                                            <option value="4">4</option>
+                                            <option value="5">5</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Описание (цвет, размер, приметы)</label>
+                                        <textarea name="items[0].description" class="form-control" rows="2"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px; margin-top: 20px;">
+                            <button type="button" onclick="addItem()" class="btn btn-outline">
+                                + Добавить вещь
+                            </button>
+                            <button type="submit" class="btn btn-success">
+                                💾 Сохранить опись
+                            </button>
+                        </div>
+                        
+                        <div style="background: #fff3e0; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                            <strong>⚠ После сохранения редактирование описи будет недоступно.</strong>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Быстрый доступ к словарю -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">📝 Часто используемые вещи</h3>
+                    </div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                        <span style="background: #e3f2fd; padding: 8px 15px; border-radius: 20px; cursor: pointer;"
+                              onclick="quickAddItem('Куртка зимняя')">Куртка зимняя</span>
+                        <span style="background: #e3f2fd; padding: 8px 15px; border-radius: 20px; cursor: pointer;"
+                              onclick="quickAddItem('Пальто')">Пальто</span>
+                        <span style="background: #e3f2fd; padding: 8px 15px; border-radius: 20px; cursor: pointer;"
+                              onclick="quickAddItem('Сапоги')">Сапоги</span>
+                        <span style="background: #e3f2fd; padding: 8px 15px; border-radius: 20px; cursor: pointer;"
+                              onclick="quickAddItem('Шапка')">Шапка</span>
+                        <span style="background: #e3f2fd; padding: 8px 15px; border-radius: 20px; cursor: pointer;"
+                              onclick="quickAddItem('Телефон')">Телефон</span>
+                        <span style="background: #e3f2fd; padding: 8px 15px; border-radius: 20px; cursor: pointer;"
+                              onclick="quickAddItem('Паспорт')">Паспорт</span>
+                        <a href="/dictionary" style="background: #f0f0f0; padding: 8px 15px; border-radius: 20px; 
+                           text-decoration: none; color: #333;">
+                            📖 Открыть полный словарь →
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script th:src="@{/js/app.js}"></script>
+    <script>
+        let itemCount = 1;
+        
+        function searchPatient() {
+            const query = document.getElementById('patient-search').value;
+            if (!query) return;
+            
+            fetch('/search/api?query=' + encodeURIComponent(query))
+                .then(res => res.json())
+                .then(patients => {
+                    const container = document.getElementById('patient-results');
+                    
+                    if (patients.length === 0) {
+                        container.innerHTML = '<p style="color:#888; text-align:center;">Пациентов не найдено</p>';
+                    } else {
+                        let html = '';
+                        patients.forEach(p => {
+                            html += `
+                                <div style="display:flex; justify-content:space-between; align-items:center;
+                                     padding:15px; border:1px solid #e0e0e0; border-radius:8px; margin-bottom:10px;">
+                                    <div>
+                                        <strong>${p.fullName}</strong><br>
+                                        <small>№ ИБ: ${p.medicalCardNumber} | ДР: ${p.birthDate || '—'}</small>
+                                    </div>
+                                    <button onclick="selectPatient('${p.medicalCardNumber}', '${p.fullName}', '${p.medicalCardNumber}')"
+                                            class="btn btn-primary btn-sm">Создать опись</button>
+                                </div>`;
+                        });
+                        container.innerHTML = html;
+                    }
+                });
+        }
+        
+        function selectPatient(cardNumber, fullName, card) {
+            document.getElementById('medical-card-number').value = cardNumber;
+            document.getElementById('selected-patient-card').innerHTML = `
+                <div style="background: #e8f5e9; padding: 15px; border-radius: 8px;">
+                    <strong>Пациент:</strong> ${fullName}<br>
+                    <strong>№ истории:</strong> ${card}
+                </div>`;
+            document.getElementById('inventory-form-section').style.display = 'block';
+            document.getElementById('patient-results').innerHTML = '';
+            document.getElementById('patient-search').value = '';
+            
+            // Скроллим к форме
+            document.getElementById('inventory-form-section').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function addItem() {
+            itemCount++;
+            const container = document.getElementById('items-container');
+            const html = `
+                <div class="item-row">
+                    <h5>Вещь #${itemCount}</h5>
+                    <div class="form-group">
+                        <label>Название *</label>
+                        <input type="text" name="items[${itemCount - 1}].name" class="form-control" required>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 15px;">
+                        <div class="form-group">
+                            <label>Количество</label>
+                            <select name="items[${itemCount - 1}].quantity" class="form-control">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Описание</label>
+                            <textarea name="items[${itemCount - 1}].description" class="form-control" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-danger btn-sm" 
+                            onclick="this.parentElement.remove()" style="margin-top: 10px;">
+                        🗑 Удалить
+                    </button>
+                </div>`;
+            container.insertAdjacentHTML('beforeend', html);
+        }
+        
+        function quickAddItem(name) {
+            document.getElementById('inventory-form-section').style.display = 'block';
+            addItem();
+            const inputs = document.querySelectorAll('input[name$=".name"]');
+            const lastInput = inputs[inputs.length - 1];
+            if (lastInput && !lastInput.value) {
+                lastInput.value = name;
+            }
+            document.getElementById('inventory-form-section').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

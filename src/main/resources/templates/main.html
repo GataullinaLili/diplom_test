@@ -3,67 +3,65 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>АРМ.Вещи — Главная</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial; display: flex; min-height: 100vh; }
-        
-        /* Левое меню */
-        .sidebar { width: 250px; background: #1a1a2e; color: white; padding: 20px 0; }
-        .sidebar h2 { padding: 0 20px 20px; border-bottom: 1px solid #333; }
-        .sidebar a { display: block; padding: 12px 20px; color: #ccc; text-decoration: none; }
-        .sidebar a:hover { background: #16213e; color: white; }
-        
-        /* Основная область */
-        .main-content { flex: 1; display: flex; flex-direction: column; }
-        
-        /* Верхняя панель */
-        .topbar { display: flex; justify-content: space-between; align-items: center;
-                  padding: 15px 30px; background: white; border-bottom: 1px solid #ddd; }
-        .user-info { display: flex; align-items: center; gap: 15px; }
-        .logout-btn { padding: 8px 20px; background: #e74c3c; color: white; 
-                      border: none; border-radius: 4px; cursor: pointer; }
-        
-        .content { padding: 30px; }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
-    <!-- Левое меню -->
-    <div class="sidebar">
-        <h2>АРМ.Вещи</h2>
-        <a href="/search">🔍 Поиск</a>
-        <a href="/inventories">📋 Описи хранения</a>
-        
-        <div sec:authorize="hasRole('ADMIN')">
-            <a href="/admin/users">👥 Пользователи</a>
-            <a href="/admin/storages">🏠 Склады</a>
-            <a href="/admin/cells">📦 Ячейки</a>
-        </div>
-        
-        <a href="/instructions/user">📖 Инструкция пользователя</a>
-        <div sec:authorize="hasRole('ADMIN')">
-            <a href="/instructions/admin">📖 Инструкция администратора</a>
-        </div>
-        <a href="/dictionary">📝 Словарь вещей</a>
-    </div>
+    <!-- Сайдбар -->
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
     
-    <!-- Основная область -->
+    <!-- Основной контент -->
     <div class="main-content">
-        <div class="topbar">
-            <h3>Главная страница АРМ.Вещи</h3>
-            <div class="user-info">
-                <span sec:authentication="name">Пользователь</span>
-                <form th:action="@{/exit}" method="post">
-                    <button class="logout-btn">Выход</button>
-                </form>
+        <!-- Топбар -->
+        <div th:replace="~{fragments/topbar :: topbar}"></div>
+        
+        <!-- Контент -->
+        <div class="content">
+            <h1 class="page-title">Главная страница</h1>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Добро пожаловать в АРМ.Вещи</h3>
+                </div>
+                <p style="margin-bottom: 15px;">Система автоматизированного учёта личных вещей посетителей</p>
+                
+                <div sec:authorize="hasRole('ADMIN')" style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                    <strong>Вы вошли как Администратор</strong>
+                    <p style="margin-top: 5px; color: #666;">Доступны все функции системы, включая управление пользователями и справочниками</p>
+                </div>
+                
+                <div sec:authorize="hasRole('STOREKEEPER')" style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                    <strong>Вы вошли как Сотрудник склада</strong>
+                    <p style="margin-top: 5px; color: #666;">Доступно создание описей, размещение и выдача вещей</p>
+                </div>
+                
+                <div sec:authorize="hasRole('RECEPTIONIST')" style="background: #fff3e0; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                    <strong>Вы вошли как Приёмщик</strong>
+                    <p style="margin-top: 5px; color: #666;">Доступно создание описей и выдача вещей</p>
+                </div>
+            </div>
+            
+            <!-- Быстрые действия -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Быстрые действия</h3>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <a href="/search" class="btn btn-primary" style="justify-content: center;">
+                        🔍 Поиск пациента
+                    </a>
+                    <a href="/inventories" class="btn btn-success" style="justify-content: center;">
+                        📋 Описи хранения
+                    </a>
+                    <a href="/audit/history" class="btn btn-outline" style="justify-content: center;">
+                        📜 История операций
+                    </a>
+                </div>
             </div>
         </div>
-        <div class="content">
-            <h3>Добро пожаловать в систему учёта вещей</h3>
-            <p sec:authorize="hasRole('ADMIN')">Вы вошли как Администратор</p>
-            <p sec:authorize="hasRole('STOREKEEPER')">Вы вошли как Сотрудник склада</p>
-            <p sec:authorize="hasRole('RECEPTIONIST')">Вы вошли как Приёмщик</p>
-        </div>
     </div>
+    
+    <script th:src="@{/js/app.js}"></script>
 </body>
 </html>

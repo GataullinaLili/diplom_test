@@ -8,52 +8,36 @@
 </head>
 <body>
     <div th:replace="~{fragments/sidebar :: sidebar}"></div>
-    
+
     <div class="main-content">
         <div th:replace="~{fragments/topbar :: topbar}"></div>
-        
+
         <div class="content">
             <h1 class="page-title">Поиск пациента</h1>
-            
-            <!-- Поисковая строка -->
+
             <div class="card">
                 <div class="search-box">
-                    <input type="text" id="patient-search" placeholder="Введите ФИО и дату рождения (пример: Иванов И.И. 20.03.1981)">
+                    <input type="text" id="patient-search" 
+                           placeholder="Введите ФИО, номер истории или ФИО и дату рождения (пример: Иванов И.И. 20.03.1981)">
                     <button onclick="searchPatient()" class="btn btn-primary">🔍 Найти</button>
                 </div>
-                
-                <!-- QR-сканер -->
-                <div style="display: flex; gap: 15px; align-items: center; margin-top: 10px;">
-                    <span style="color: #888;">или</span>
-                    <button onclick="startQrScanner('patient-search')" class="btn btn-outline">
-                        📷 Сканировать QR-код браслета
-                    </button>
-                </div>
-                
-                <div id="qr-scanner-area" style="display: none; margin-top: 20px; padding: 20px; 
-                     border: 2px dashed #ddd; border-radius: 8px; text-align: center;">
-                    <video id="qr-video" width="100%" max-height="300" style="max-height: 300px;"></video>
-                    <button onclick="stopQrScanner()" class="btn btn-danger btn-sm" style="margin-top: 10px;">
-                        Отменить сканирование
-                    </button>
+                <div style="color: #888; font-size: 13px; margin-top: 5px;">
+                    Примеры поиска: Иванов | ИБ-12345 | Иванов И.И. 01.01.1980
                 </div>
             </div>
-            
+
             <!-- Результаты поиска -->
             <div id="search-results" style="display: none;">
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">Данные пациента</h3>
+                        <h3 class="card-title">Найденные пациенты</h3>
                     </div>
-                    <div id="patient-data" style="margin-bottom: 20px;"></div>
-                    <button onclick="showCreateInventoryModal()" class="btn btn-primary">
-                        Добавить опись хранения
-                    </button>
+                    <div id="patient-list"></div>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <!-- Модальное окно создания описи -->
     <div id="create-inventory-modal" class="modal-overlay">
         <div class="modal">
@@ -61,9 +45,10 @@
                 <h3>Создание описи хранения</h3>
                 <button class="modal-close" onclick="closeModal('create-inventory-modal')">✕</button>
             </div>
+            <div id="selected-patient-info" style="margin-bottom: 20px;"></div>
             <form id="inventory-form" th:action="@{/api/inventory/create}" method="post">
-                <input type="hidden" id="mis-patient-id" name="misPatientId">
-                
+                <input type="hidden" id="medical-card-number" name="medicalCardNumber">
+
                 <div id="items-container">
                     <div class="form-group">
                         <label>Название вещи</label>
@@ -81,11 +66,11 @@
                     </div>
                     <div class="form-group">
                         <label>Описание</label>
-                        <textarea name="items[0].description" class="form-control" rows="2" 
+                        <textarea name="items[0].description" class="form-control" rows="2"
                                   placeholder="Цвет, размер, особые приметы"></textarea>
                     </div>
                 </div>
-                
+
                 <div style="display: flex; gap: 10px; margin-top: 15px;">
                     <button type="button" onclick="addItem()" class="btn btn-outline">+ Добавить вещь</button>
                     <button type="submit" class="btn btn-success">Сохранить опись</button>
@@ -93,32 +78,56 @@
             </form>
         </div>
     </div>
-    
+
     <script th:src="@{/js/app.js}"></script>
     <script>
         let itemIndex = 1;
-        
+
         function searchPatient() {
             const query = document.getElementById('patient-search').value;
             if (!query) return;
-            
-            // Имитация поиска (в реальности AJAX к контроллеру)
+
             fetch('/search/api?query=' + encodeURIComponent(query))
                 .then(res => res.json())
-                .then(patient => {
-                    document.getElementById('search-results').style.display = 'block';
-                    document.getElementById('patient-data').innerHTML = 
-                        `<p><strong>ФИО:</strong> ${patient.fullName}</p>
-                         <p><strong>Дата рождения:</strong> ${patient.birthDate}</p>
-                         <p><strong>№ истории болезни:</strong> ${patient.medicalCardNumber}</p>`;
-                    document.getElementById('mis-patient-id').value = patient.misId;
+                .then(patients => {
+                    const container = document.getElementById('search-results');
+                    const list = document.getElementById('patient-list');
+
+                    if (patients.length === 0) {
+                        list.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">Пациентов не найдено</p>';
+                    } else {
+                        let html = '';
+                        patients.forEach(p => {
+                            html += `
+                                <div style="display: flex; justify-content: space-between; align-items: center;
+                                     padding: 15px; border-bottom: 1px solid #eee;">
+                                    <div>
+                                        <strong>${p.fullName}</strong>
+                                        <span style="color: #888; margin-left: 10px;">№ ИБ: ${p.medicalCardNumber}</span>
+                                        <span style="color: #888; margin-left: 10px;">Дата рождения: ${p.birthDate || '—'}</span>
+                                    </div>
+                                    <button onclick="selectPatient('${p.medicalCardNumber}', '${p.fullName}')"
+                                            class="btn btn-primary btn-sm">
+                                        Добавить опись хранения
+                                    </button>
+                                </div>`;
+                        });
+                        list.innerHTML = html;
+                    }
+                    container.style.display = 'block';
                 });
         }
-        
-        function showCreateInventoryModal() {
+
+        function selectPatient(cardNumber, fullName) {
+            document.getElementById('medical-card-number').value = cardNumber;
+            document.getElementById('selected-patient-info').innerHTML = 
+                `<div style="background: #e3f2fd; padding: 15px; border-radius: 8px;">
+                    <strong>Пациент:</strong> ${fullName}<br>
+                    <strong>Номер истории:</strong> ${cardNumber}
+                </div>`;
             openModal('create-inventory-modal');
         }
-        
+
         function addItem() {
             const container = document.getElementById('items-container');
             const html = `

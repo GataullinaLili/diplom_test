@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>АРМ.Вещи — Вход в систему</title>
+    <style>
+        body { font-family: Arial; display: flex; justify-content: center; 
+               align-items: center; height: 100vh; background: #f0f2f5; }
+        .login-form { background: white; padding: 40px; border-radius: 8px; 
+                      box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 350px; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; 
+                border-radius: 4px; }
+        button { width: 100%; padding: 10px; background: #0052cc; color: white; 
+                 border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+    </style>
+</head>
+<body>
+    <div class="login-form">
+        <h2 style="text-align: center;">АРМ.Вещи</h2>
+        <form th:action="@{/login}" method="post">
+            <input type="text" name="username" placeholder="Логин" required>
+            <input type="password" name="password" placeholder="Пароль" required>
+            <button type="submit">Войти</button>
+        </form>
+    </div>
+</body>
+</html>

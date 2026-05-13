@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выдача вещей — АРМ.Вещи</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    
+    <div class="main-content">
+        <div th:replace="~{fragments/topbar :: topbar}"></div>
+        
+        <div class="content">
+            <h1 class="page-title">Выдача вещей</h1>
+            
+            <!-- Поиск описи для выдачи -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Найти опись для выдачи</h3>
+                </div>
+                <div class="search-box">
+                    <input type="text" id="issue-search" 
+                           placeholder="Введите номер описи, ФИО пациента или отсканируйте QR-код...">
+                    <button onclick="searchInventoryForIssue()" class="btn btn-primary">🔍 Найти</button>
+                </div>
+                <div style="margin-top: 10px; text-align: center;">
+                    <span style="color: #888;">или</span>
+                    <button onclick="startQrScanner('issue-search')" class="btn btn-outline" 
+                            style="margin-left: 10px;">
+                        📷 Сканировать QR-код описи
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Результаты -->
+            <div id="issue-results" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Найденные описи</h3>
+                    </div>
+                    <div id="issue-list"></div>
+                </div>
+            </div>
+            
+            <!-- Описи на выдачу -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Описи, готовые к выдаче</h3>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>№ описи</th>
+                                <th>Пациент</th>
+                                <th>Склад</th>
+                                <th>Ячейка</th>
+                                <th>Дата создания</th>
+                                <th>Действие</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="inv : ${placedInventories}">
+                                <td><strong>#<span th:text="${inv.id}">1001</span></strong></td>
+                                <td th:text="${inv.patient.fullName}">Иванов И.И.</td>
+                                <td th:text="${inv.storage?.name ?: '—'}">Склад №1</td>
+                                <td><span class="status status-placed" 
+                                          th:text="${inv.cell?.name ?: '—'}">А-01</span></td>
+                                <td th:text="${#temporals.format(inv.createdAt, 'dd.MM.yyyy')}">01.01.2024</td>
+                                <td>
+                                    <button th:onclick="'confirmIssue(' + ${inv.id} + ')'" 
+                                            class="btn btn-success btn-sm">✅ Выдать</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно подтверждения выдачи -->
+    <div id="issue-confirm-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>⚠ Подтверждение выдачи</h3>
+                <button class="modal-close" onclick="closeModal('issue-confirm-modal')">✕</button>
+            </div>
+            
+            <div id="issue-confirm-content"></div>
+            
+            <div style="background: #fff3e0; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                <strong>⚠ Внимание!</strong> После выдачи опись будет закрыта. 
+                Отменить это действие будет невозможно.
+            </div>
+            
+            <div style="display: flex; gap: 10px;">
+                <button id="confirm-issue-btn" class="btn btn-success" onclick="issueInventory()">
+                    ✅ Подтвердить выдачу
+                </button>
+                <button class="btn btn-outline" onclick="closeModal('issue-confirm-modal')">
+                    Отмена
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script th:src="@{/js/app.js}"></script>
+    <script>
+        let currentIssueInventoryId = null;
+        
+        function confirmIssue(inventoryId) {
+            fetch('/api/inventory/' + inventoryId)
+                .then(res => res.json())
+                .then(inv => {
+                    document.getElementById('issue-confirm-content').innerHTML = `
+                        <p><strong>Опись №${inv.id}</strong></p>
+                        <p>Пациент: <strong>${inv.patient.fullName}</strong></p>
+                        <p>№ истории: ${inv.patient.medicalCardNumber}</p>
+                        <p>Склад: ${inv.storage?.name || '—'}</p>
+                        <p>Ячейка: ${inv.cell?.name || '—'}</p>
+                        <p>Количество вещей: ${inv.items.length}</p>
+                    `;
+                    currentIssueInventoryId = inventoryId;
+                    openModal('issue-confirm-modal');
+                });
+        }
+        
+        function issueInventory() {
+            if (!currentIssueInventoryId) return;
+            
+            fetch('/api/inventory/' + currentIssueInventoryId + '/issue', { method: 'POST' })
+                .then(res => {
+                    if (res.ok) {
+                        closeModal('issue-confirm-modal');
+                        location.reload();
+                    } else {
+                        alert('Ошибка при выдаче описи');
+                    }
+                });
+        }
+        
+        function searchInventoryForIssue() {
+            const query = document.getElementById('issue-search').value;
+            if (!query) return;
+            
+            fetch('/api/inventory/search?query=' + encodeURIComponent(query) + '&status=PLACED')
+                .then(res => res.json())
+                .then(inventories => {
+                    const container = document.getElementById('issue-results');
+                    const list = document.getElementById('issue-list');
+                    
+                    if (inventories.length === 0) {
+                        list.innerHTML = '<p style="text-align:center; color:#888; padding:20px;">Нет описей для выдачи</p>';
+                    } else {
+                        let html = '';
+                        inventories.forEach(inv => {
+                            html += `
+                                <div style="display:flex; justify-content:space-between; align-items:center;
+                                     padding:15px; border-bottom:1px solid #eee;">
+                                    <div>
+                                        <strong>#${inv.id}</strong> — ${inv.patient.fullName}
+                                        <br><small>Склад: ${inv.storage?.name || '—'} | 
+                                        Ячейка: ${inv.cell?.name || '—'}</small>
+                                    </div>
+                                    <button onclick="confirmIssue(${inv.id})" class="btn btn-success btn-sm">
+                                        ✅ Выдать
+                                    </button>
+                                </div>`;
+                        });
+                        list.innerHTML = html;
+                    }
+                    container.style.display = 'block';
+                });
+        }
+    </script>
+</body>
+</html>
